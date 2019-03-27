@@ -31,9 +31,10 @@
 #include "extdrv/cc1101.h"
 #include "extdrv/status_led.h"
 
-#define NET_ID 105
-#define ACK "ACK"
+#define NET_ID 105 // set this same value on every sensors μController (range is 0-255)
 #define SERIAL_EOL "\n\r"
+#define RF_BUFF_LEN  64
+#define UART_HEADER_SIZE 3
 
 #define MODULE_VERSION	0x03
 #define MODULE_NAME "RF Sub1G - USB"
@@ -45,9 +46,6 @@
 #endif
 
 #define DEBUG 1
-#define RF_BUFF_LEN  64
-#define META_LEN 5
-#define DATA_LEN (RF_BUFF_LEN)-(META_LEN)
 
 #define SELECTED_FREQ  FREQ_SEL_48MHz
 #define DEVICE_ADDRESS  0xFE /* Addresses 0x00 and 0xFF are broadcast */
@@ -78,6 +76,13 @@ const struct pio status_led_red = LPC_GPIO_0_29;
 
 const struct pio button = LPC_GPIO_0_12; /* ISP button */
  
+/***************************************************************************** */
+static volatile uint8_t uart_decode_buffer = 0; // bool for handle_uart_cmd()
+static volatile uint8_t uart_process_payload = 0; // bool for handle_uart_cmd()
+static volatile uint8_t uart_remaining_payload_size = 0; // int for handle_uart_cmd()
+static volatile uint8_t uart_sensor_address = 0x00; // set by handle_uart_cmd(), read by send_on_rf()
+void uart_reset_handle(); // reset these 4 var + cc_ptr ^^^^^^^
+
 
 /***************************************************************************** */
 void system_init()
@@ -136,41 +141,12 @@ void rf_config(void)
 #endif
 }
 
-/**
- * PacketId generator, for the UDPverified packet
- */
-uint8_t packet_id = 0;
-uint8_t getNewPacketId(){
-    if(packet_id == 255){
-        packet_id = 0;
-    }else{
-        packet_id ++;
-    }
-    return packet_id;
-}
-
 int isValidNetId(uint8_t id){
 	if(id == (NET_ID)){
         return 1;
     } else {
         return 0;
     }
-}
-
-int isAck(char* message){
-    int i;
-	char* ack = ACK;
-    // if too much data => false
-    if(sizeof(message) > sizeof(ack)){
-        return 0;
-    }
-    // if not start by "ACK" => false
-	for(i=0; i<sizeof(ack); i++){
-		if(message[i] != ack[i]){
-			return 0;
-		}
-	}
-	return 1;
 }
 
 uint8_t chenillard_active = 1;
@@ -186,10 +162,10 @@ void handle_rf_rx_data(void)
 	cc1101_enter_rx_mode();
 
     // RF packet look like this
-    //      0       1      2      3     4     5 ... 63
-    // [ length | @src | @dest | id | netID | data ... ]
+    //      0       1       2      3     4 ...63
+    // [ length | @dest | @src | netID | data ... ]
 
-    if(status != 0 || isValidNetId(data[4]) == 0){
+    if(status != 0 || isValidNetId(data[3]) == 0){
         #if DEBUG
             uprintf(UART0, "Something invalid received...%s", (SERIAL_EOL));
         #endif
@@ -197,25 +173,16 @@ void handle_rf_rx_data(void)
         return;
     }
 
-    if(isAck(data+5)){
-        #if DEBUG
-            uprintf(UART0, "ACK received for data packet n°%d%s", data[3], (SERIAL_EOL));
-        #endif
-        // remove_packet_from_ack_list(data[3]);
-    }else{
-        #if DEBUG
-            uprintf(UART0, "DATA received (packet n°%d)%s", data[3], (SERIAL_EOL));
-        #endif
-        // Serial packet look like this
-        //     0     1  ...  ?
-        // [ @src | data .... ]
+	#if DEBUG
+		uprintf(UART0, "DATA received %s", (SERIAL_EOL));
+	#endif
 
-        // send on UART
-        uprintf(UART0, "%c%s%s", data[1], data+4, (SERIAL_EOL));
-
-        // send ACK back to @src
-        send_ack(data[3], data[1]);
-    }
+	// Serial packet look like this
+	//     0      1       2        3      4 ... 63
+	// [ "#" | length | @src | checksum | data ... ]
+	// send on UART
+	uint8_t checksum = data[0] + data[2];
+	uprintf(UART0, "#%d%d%d%s", data[0], data[2], checksum, data+4);
 }
 
 static volatile uint32_t cc_tx = 0;
@@ -223,114 +190,88 @@ static volatile uint32_t update_display = 0;
 static volatile uint8_t cc_tx_buff[RF_BUFF_LEN];
 static volatile uint8_t cc_ptr = 0;
 
-// void sendResetScreenConfig_DEBUG(uint32_t gpio){
-// 	char message[50];
-// 	int len = 50;
-// 	snprintf ( message, 50, "%s:LHT",SALT);
-// 	memcpy((char*)cc_tx_buff, message, len);
-// 	cc_ptr = len;
-//     cc_tx=1;
-// }
-
-void send_ack(uint8_t packetId, uint8_t dest)
+void send_on_rf(void)
 {
-    // Creat our custom ACK packet
-    //      0       1      2      3     4      5 6 7
-    // [ length | @src | @dest | id | netID | "ACK" ]
-    uint8_t packet[RF_BUFF_LEN];
-
-    // set the one byte fields
-    packet[0] = sizeof((ACK)) + (META_LEN); // 3 + 5
-    packet[1] = (DEVICE_ADDRESS); // @src
-    packet[2] = dest; // @dest
-    packet[3] = packetId; // id
-    packet[4] = (NET_ID); // netId
-
-    // set the "ACK" message
-    ackMessage = (ACK);
-    memcpy((char*)&(packet[5]), (char*)ackMessage, sizeof(ackMessage));
-
-
-    // Now we can do the stuff required by cc1101 to send some data :
-    uint8_t cc_tx_data[RF_BUFF_LEN + 2];
-	uint8_t tx_len = packet[0];
+	uint8_t serial_packet[RF_BUFF_LEN]; // to copy uart buffer 
+	uint8_t senso_address = uart_sensor_address; // copy destination
+	uint8_t tx_len = cc_ptr;
 	int ret = 0;
 
 	/* Create a local copy */
-	memcpy((char*)&(cc_tx_data[2]), (char*)packet, tx_len);
-
-	/* Prepare buffer for sending */
-	cc_tx_data[0] = tx_len + 1;
-	cc_tx_data[1] = dest; 
-
-	/* Send */
-	if (cc1101_tx_fifo_state() != 0) {
-		cc1101_flush_tx_fifo();
-	}
-	ret = cc1101_send_packet(cc_tx_data, (tx_len + 2));
-}
-
-void send_uart_packet_on_rf(void)
-{
-	uint8_t serial_packet = [RF_BUFF_LEN];
-    uint8_t tx_len = cc_ptr;
-
-    /* Create a local copy */
-	memcpy((char*)&(serial_packet[0]), (char*)cc_tx_buff, tx_len);
+	memcpy((char*)&(serial_packet[4]), (char*)cc_tx_buff, tx_len);
 	/* "Free" the rx buffer as soon as possible */
-	cc_ptr = 0;
+	uart_reset_handle();
 
-    // first create our RF Data packet :
-    //      0       1      2      3     4     5 ... 63
-    // [ length | @src | @dest | id | netID | data ... ]
-    // 
-    // from the Serial packet received : (cc_tx_data from [2])
-    //     0     1  ...  ?
-    // [ @dest | data .... ]
-
-	uint8_t packet = [RF_BUFF_LEN];
-
-    // set the one byte fields
-    packet[0] = tx_len + (META_LEN); // 3 + 5 // NOTE: not sure of tx_len, it might be ±1
-    packet[1] = (DEVICE_ADDRESS); // @src
-    packet[2] = serial_packet[0]; // @dest
-    packet[3] = getNewPacketId(); // id
-    packet[4] = (NET_ID); // netId
-
-    // then set the data
-    memcpy((char*)&(packet[5]), (char*)(serial_packet+1), packet[0]);
-
-
-    // Now we can do the stuff required by cc1101 to send some data :
-    uint8_t cc_tx_data[RF_BUFF_LEN + 2];
-	tx_len = packet[0];
-	int ret = 0;
-
-	/* Create a local copy */
-	memcpy((char*)&(cc_tx_data[2]), (char*)cc_tx_buff, tx_len);
+	// RF packet look like this
+    //      0       1       2      3     4 ...63
+    // [ length | @dest | @src | netID | data ... ]
 
 	/* Prepare buffer for sending */
-	cc_tx_data[0] = tx_len + 1;
-	cc_tx_data[1] = serial_packet[0];
+	serial_packet[0] = tx_len;
+	serial_packet[1] = uart_sensor_address;
+	serial_packet[2] = (DEVICE_ADDRESS);
+	serial_packet[3] = (NET_ID);
 
 	/* Send */
 	if (cc1101_tx_fifo_state() != 0) {
 		cc1101_flush_tx_fifo();
 	}
-	ret = cc1101_send_packet(cc_tx_data, (tx_len + 2));
+	ret = cc1101_send_packet(cc_tx_data, (tx_len + 4));
 }
-
 
 void handle_uart_cmd(uint8_t c)
-{
-	if (cc_ptr < RF_BUFF_LEN) {
-		cc_tx_buff[cc_ptr++] = c;
-	} else {
-		cc_ptr = 0;
+{	
+	if(uart_decode_buffer == 1){
+		// copy byte in buffer
+		cc_tx_buff[cc_ptr] = c;
+		// increment buffer pointer
+		cc_ptr++;
+
+		if(uart_process_payload == 1){
+			uart_remaining_payload_size--;
+			if(uart_remaining_payload_size <= 0){
+				// on send et on reset quand tout le payload est dans le buffer
+					// NOP it's done by send_on_rf()
+						// uart_decode_buffer = 0;
+						// uart_process_payload = 0;
+						// cc_ptr = 0; // "empty" buffer 
+				cc_tx = 1; // ready to send on rf
+			}
+		}else{
+			// when header is in buffer, we can process it
+			if(cc_ptr >= (UART_HEADER_SIZE)){
+				// header looks like this :
+				//      0       1        2
+				// [ length | @src | checksum ]
+				if((cc_tx_buff[0]+cc_tx_buff[1]) == cc_tx_buff[2]){
+					// checksum is valid
+					// so we can process the payload
+					uart_remaining_payload_size = cc_tx_buff[0]; // save the payload size
+					uart_sensor_address = cc_tx_buff[1]; // save the sensor address
+					uart_process_payload = 1;
+					cc_ptr = 0; // "erase" buffer, we dont need it anymore
+				}else{
+					// checksum is NOT valid
+					// reset
+					uart_reset_handle();
+				}
+			}
+		}
+
+	}else{
+		// detect new uart packet
+		if(c == '#'){
+			uart_decode_buffer = 1;
+		}
 	}
-	if ((c == '\n') || (c == '\r')) {
-		cc_tx = 1;
-	}
+}
+
+void uart_reset_handle(){
+	uart_remaining_payload_size = 0;
+	uart_sensor_address = 0x00;
+	uart_decode_buffer = 0;
+	uart_process_payload = 0;
+	cc_ptr = 0;
 }
 
 int main(void)
@@ -358,7 +299,7 @@ int main(void)
         
         // When a serial packet is received, we send it on rf
 		if (cc_tx == 1) {
-			send_uart_packet_on_rf();
+			send_on_rf();
 			cc_tx = 0;
 		}
 
@@ -378,7 +319,7 @@ int main(void)
 				loop = 0;
 			}
 		}
-        
+
 		if (check_rx == 1) {
 			check_rx = 0;
 			handle_rf_rx_data();

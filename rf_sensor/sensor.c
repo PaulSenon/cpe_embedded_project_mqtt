@@ -102,7 +102,7 @@ const struct pio temp_alert = LPC_GPIO_0_3;
 const struct pio status_led_green = LPC_GPIO_0_28;
 const struct pio status_led_red = LPC_GPIO_0_29;
 
-// const struct pio button = LPC_GPIO_0_12; /* ISP button */
+const struct pio button = LPC_GPIO_0_12; /* ISP button */
 
 
 #define ADC_VBAT  LPC_ADC(0)
@@ -360,14 +360,14 @@ void send_on_rf(void)
 #endif
 }
 
-// void toggle_wait_for_ack_DEBUG(uint32_t gpio){
-//     if(waitForACK == 1){
-//         waitForACK = 0;
-//     }else{
-//         waitForACK = 1;
-//     }
-//     uprintf(UART0, "waitforACK: %d\n", waitForACK);
-// }
+void toggle_wait_for_ack_DEBUG(uint32_t gpio){
+    if(waitForACK == 1){
+        waitForACK = 0;
+    }else{
+        waitForACK = 1;
+    }
+    uprintf(UART0, "waitforACK: %d\n", waitForACK);
+}
 
 
 /***************************************************************************** */
@@ -389,7 +389,7 @@ int main(void)
 
     add_systick_callback(releves, (TEMP_RLV_MS));
 
-    // set_gpio_callback(toggle_wait_for_ack_DEBUG, &button, EDGE_RISING);
+    set_gpio_callback(toggle_wait_for_ack_DEBUG, &button, EDGE_RISING);
 
 	while (1) {
 		uint8_t status = 0;

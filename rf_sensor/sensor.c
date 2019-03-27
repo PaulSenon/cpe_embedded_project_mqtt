@@ -292,6 +292,9 @@ void releves(uint32_t gpio){
         // send on rf
         cc_tx = 1;
     }
+#ifdef DEBUG
+	uprintf(UART0, "releve\n\r");
+#endif
 }
 
 void send_ack(){
@@ -366,7 +369,7 @@ void toggle_wait_for_ack_DEBUG(uint32_t gpio){
     }else{
         waitForACK = 1;
     }
-    uprintf(UART0, "waitforACK: %d\n", waitForACK);
+    uprintf(UART0, "waitforACK: %d\n\r", waitForACK);
 }
 
 

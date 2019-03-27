@@ -375,58 +375,58 @@ int main(void)
 {
 	system_init();
 	uprintf(UART0, "Hello\n");
-	ssp_master_on(0, LPC_SSP_FRAME_SPI, 8, 4*1000*1000); /* bus_num, frame_type, data_width, rate */
-	i2c_on(I2C0, I2C_CLK_100KHz, I2C_MASTER);
-	adc_on(NULL);
-	status_led_config(&status_led_green, &status_led_red);
+	// ssp_master_on(0, LPC_SSP_FRAME_SPI, 8, 4*1000*1000); /* bus_num, frame_type, data_width, rate */
+	// i2c_on(I2C0, I2C_CLK_100KHz, I2C_MASTER);
+	// adc_on(NULL);
+	// status_led_config(&status_led_green, &status_led_red);
 
-	/* Radio */
-	rf_config();
+	// /* Radio */
+	// rf_config();
 
-	/* Temperature sensor */
-	temp_config();
+	// /* Temperature sensor */
+	// temp_config();
 
-    add_systick_callback(releves, (TEMP_RLV_MS));
+    // add_systick_callback(releves, (TEMP_RLV_MS));
 
-    // set_gpio_callback(toggle_wait_for_ack_DEBUG, &button, EDGE_RISING);
+    // // set_gpio_callback(toggle_wait_for_ack_DEBUG, &button, EDGE_RISING);
 
-	while (1) {
-		uint8_t status = 0;
-		/* Request a Temp conversion on I2C TMP101 temperature sensor */
-		tmp101_sensor_start_conversion(&tmp101_sensor); /* A conversion takes about 40ms */
-		/* Start an ADC conversion to get battery voltage */
-		adc_start_convertion_once(ADC_VBAT, LPC_ADC_SEQ(0), 0);
+	// while (1) {
+	// 	uint8_t status = 0;
+	// 	/* Request a Temp conversion on I2C TMP101 temperature sensor */
+	// 	tmp101_sensor_start_conversion(&tmp101_sensor); /* A conversion takes about 40ms */
+	// 	/* Start an ADC conversion to get battery voltage */
+	// 	adc_start_convertion_once(ADC_VBAT, LPC_ADC_SEQ(0), 0);
 
-		/* Tell we are alive :) */
-		chenillard(250);
+	// 	/* Tell we are alive :) */
+	// 	chenillard(250);
 
-		/* RF */
-		if (cc_tx == 1) {
-			send_on_rf();
-			cc_tx = 0;
-		}
+	// 	/* RF */
+	// 	if (cc_tx == 1) {
+	// 		send_on_rf();
+	// 		cc_tx = 0;
+	// 	}
 
-		/* Do not leave radio in an unknown or unwated state */
-		do {
-			status = (cc1101_read_status() & CC1101_STATE_MASK);
-		} while (status == CC1101_STATE_TX);
+	// 	/* Do not leave radio in an unknown or unwated state */
+	// 	do {
+	// 		status = (cc1101_read_status() & CC1101_STATE_MASK);
+	// 	} while (status == CC1101_STATE_TX);
 
-		if (status != CC1101_STATE_RX) {
-			static uint8_t loop = 0;
-			loop++;
-			if (loop > 10) {
-				if (cc1101_rx_fifo_state() != 0) {
-					cc1101_flush_rx_fifo();
-				}
-				cc1101_enter_rx_mode();
-				loop = 0;
-			}
-		}
-		if (check_rx == 1) {
-			check_rx = 0;
-			handle_rf_rx_data();
-		}
-	}
+	// 	if (status != CC1101_STATE_RX) {
+	// 		static uint8_t loop = 0;
+	// 		loop++;
+	// 		if (loop > 10) {
+	// 			if (cc1101_rx_fifo_state() != 0) {
+	// 				cc1101_flush_rx_fifo();
+	// 			}
+	// 			cc1101_enter_rx_mode();
+	// 			loop = 0;
+	// 		}
+	// 	}
+	// 	if (check_rx == 1) {
+	// 		check_rx = 0;
+	// 		handle_rf_rx_data();
+	// 	}
+	// }
 	return 0;
 }
 

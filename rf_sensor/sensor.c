@@ -117,6 +117,7 @@ static volatile uint8_t rlv_buffer[sizeof(int)];
 /***************************************************************************** */
 void system_init()
 {
+	uprintf(UART0, "Hello\n");
 	/* Stop the watchdog */
 	startup_watchdog_disable(); /* Do it right now, before it gets a chance to break in */
 	system_set_default_power_state();

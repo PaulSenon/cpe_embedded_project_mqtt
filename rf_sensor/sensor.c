@@ -192,7 +192,7 @@ void rf_config(void)
 	cc1101_update_config(rf_specific_settings, sizeof(rf_specific_settings));
 	set_gpio_callback(rf_rx_calback, &cc1101_gdo0, EDGE_RISING);
 
-#if DEBUG
+#ifdef DEBUG
 	uprintf(UART0, "CC1101 RF link init done.\n");
 #endif
 }
@@ -240,14 +240,14 @@ void handle_rf_rx_data(void)
     // [ length | @dest | @src | netID | data ... ]
 
     if(status != 0 || isValidNetId(data[3]) == 0){
-        #if DEBUG
+        #ifdef DEBUG
             uprintf(UART0, "RF: receive: Something invalid received...\n");
         #endif
         // skip this packet if it does not belong to us (or if invalid)
         return;
     }
 
-#if DEBUG
+#ifdef DEBUG
     uprintf(UART0, "RF: receive packet: %s\n", data);
 #endif
 
@@ -262,7 +262,7 @@ void handle_rf_rx_data(void)
 		send_ack();
     }
 
-#if DEBUG
+#ifdef DEBUG
 	uprintf(UART0, "RF: receive: ret:%d, st: %d.\n", ret, status);
 #endif
 
@@ -318,7 +318,7 @@ void send_ack(){
 	}
 	ret = cc1101_send_packet(cc_tx_data, (tx_len + 4));
 
-#if DEBUG
+#ifdef DEBUG
 	uprintf(UART0, "RF: send: Tx ret: %d\n", ret);
 #endif
 }
@@ -342,7 +342,7 @@ void send_on_rf(void)
 	cc_tx_data[2] = (DEVICE_ADDRESS);
 	cc_tx_data[3] = (NET_ID);
 
-#if DEBUG
+#ifdef DEBUG
     uprintf(UART0, "RF: send: packet: %s\n", cc_tx_data);
 #endif
 
@@ -355,7 +355,7 @@ void send_on_rf(void)
     // wait for ACK
     waitForACK = 1;
 
-#if DEBUG
+#ifdef DEBUG
 	uprintf(UART0, "RF: send: Tx ret: %d\n", ret);
 #endif
 }
@@ -374,6 +374,7 @@ void toggle_wait_for_ack_DEBUG(uint32_t gpio){
 int main(void)
 {
 	system_init();
+	uprintf(UART0, "Hello\n");
 	ssp_master_on(0, LPC_SSP_FRAME_SPI, 8, 4*1000*1000); /* bus_num, frame_type, data_width, rate */
 	i2c_on(I2C0, I2C_CLK_100KHz, I2C_MASTER);
 	adc_on(NULL);

@@ -153,11 +153,11 @@ uint8_t chenillard_active = 1;
 void handle_rf_rx_data(void)
 {
 	uint8_t data[RF_BUFF_LEN];
-	int8_t ret = 0;
+	// int8_t ret = 0;
 	uint8_t status = 0;
 
 	/* Check for received packet (and get it if any) */
-	ret = cc1101_receive_packet(data, RF_BUFF_LEN, &status);
+	cc1101_receive_packet(data, RF_BUFF_LEN, &status);
 	/* Go back to RX mode */
 	cc1101_enter_rx_mode();
 
@@ -195,7 +195,7 @@ void send_on_rf(void)
 	uint8_t serial_packet[RF_BUFF_LEN]; // to copy uart buffer 
 	uint8_t senso_address = uart_sensor_address; // copy destination
 	uint8_t tx_len = cc_ptr;
-	int ret = 0;
+	// int ret = 0;
 
 	/* Create a local copy */
 	memcpy((char*)&(serial_packet[4]), (char*)cc_tx_buff, tx_len);
@@ -208,7 +208,7 @@ void send_on_rf(void)
 
 	/* Prepare buffer for sending */
 	serial_packet[0] = tx_len;
-	serial_packet[1] = uart_sensor_address;
+	serial_packet[1] = senso_address;
 	serial_packet[2] = (DEVICE_ADDRESS);
 	serial_packet[3] = (NET_ID);
 
@@ -216,7 +216,7 @@ void send_on_rf(void)
 	if (cc1101_tx_fifo_state() != 0) {
 		cc1101_flush_tx_fifo();
 	}
-	ret = cc1101_send_packet(cc_tx_data, (tx_len + 4));
+	ret = cc1101_send_packet(serial_packet, (tx_len + 4));
 }
 
 void handle_uart_cmd(uint8_t c)
@@ -285,7 +285,7 @@ int main(void)
 	rf_config();
 
     /* Activate the chenillard on Rising edge (button release) */
-	set_gpio_callback(sendResetScreenConfig_DEBUG, &button, EDGE_RISING);
+	// set_gpio_callback(sendResetScreenConfig_DEBUG, &button, EDGE_RISING);
 
 #if DEBUG
 	uprintf(UART0, "App started%s", (SERIAL_EOL));

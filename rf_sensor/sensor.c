@@ -54,6 +54,8 @@
 #error Either RF_868MHz or RF_915MHz MUST be defined.
 #endif
 
+#define DEVICE_ADDRESS  0x34 /* Addresses 0x00 and 0xFF are broadcast */
+#define GATEWAY_ADDRESS 0xFE /* Address of the associated device */
 
 #define DEBUG 1
 #define BUFF_LEN 60
@@ -108,7 +110,9 @@ const struct pio button = LPC_GPIO_0_12; /* ISP button */
 #define ADC_EXT2  LPC_ADC(2)
 
 
-void send_ack;
+void send_ack();
+static volatile uint8_t rlv_buffer[sizeof(int)];
+
 
 /***************************************************************************** */
 void system_init()
@@ -201,8 +205,9 @@ int isValidNetId(uint8_t id){
     }
 }
 
-int isAck(char* message){
-    int i;
+uint8_t isAck(uint8_t* message){
+    uint8_t i;
+
 	char* ack = (ACK_MSG);
     // if too much data => false
     if(sizeof(message) > sizeof(ack)){
@@ -210,22 +215,23 @@ int isAck(char* message){
     }
     // if not start by "ACK" => false
 	for(i=0; i<sizeof(ack); i++){
-		if(message[i] != ack[i]){
+		if((char)message[i] != ack[i]){
 			return 0;
 		}
 	}
 	return 1;
 }
 
+static volatile uint32_t cc_tx = 0;
 static volatile uint8_t waitForACK = 0;
 void handle_rf_rx_data(void)
 {
     uint8_t data[RF_BUFF_LEN];
-	// int8_t ret = 0;
+	int8_t ret = 0;
 	uint8_t status = 0;
 
 	/* Check for received packet (and get it if any) */
-	cc1101_receive_packet(data, RF_BUFF_LEN, &status);
+	ret = cc1101_receive_packet(data, RF_BUFF_LEN, &status);
 	/* Go back to RX mode */
 	cc1101_enter_rx_mode();
 
@@ -246,7 +252,7 @@ void handle_rf_rx_data(void)
 #endif
 
 
-    if(isAck(data+4)){
+    if(isAck(data+4) == 1){
         uprintf(UART0, "RF: receive: \"ACK\"\n");
         waitForACK = 0;
     }else{
@@ -262,11 +268,12 @@ void handle_rf_rx_data(void)
 
 }
 
-uint8_t releve_temp(){
+int releve_temp(){
     uint16_t val = 0;
-    uint8_t deci_degrees;
+    int deci_degrees;
     if (tmp101_sensor_read(&tmp101_sensor, &val, &deci_degrees) != 0) {
-        uprintf(UART0, "Temp read error: %d\n", ret);
+        uprintf(UART0, "Temp read error\n");
+		return 0;
     } else {
         uprintf(UART0, "Temp read: %d,%d - raw: 0x%04x.\n",
                 (deci_degrees/10), (deci_degrees%10), val);
@@ -277,10 +284,8 @@ uint8_t releve_temp(){
 void releves(uint32_t gpio){
     // on update pas les relevé si on est en attente d'ACK
     if(waitForACK == 0){
-        uint8_t rlv_buffer[(SIZE_RELEVES_BUFFER)];
-
         // Tous les relevés :
-            rlv_buffer[0] = releve_temp();
+            rlv_buffer+0 = releve_temp();
             // rlv_buffer[1] = ...
 
         // send on rf
@@ -289,7 +294,7 @@ void releves(uint32_t gpio){
 }
 
 void send_ack(){
-	uint8_t cc_tx_data[(3+4)]);
+	uint8_t cc_tx_data[(3+4)];
 	uint8_t tx_len = 3;
 	int ret = 0;
 
@@ -301,10 +306,10 @@ void send_ack(){
     // [ length | @dest | @src | netID | data ... ]
 
 	/* Prepare buffer for sending */
-	serial_packet[0] = tx_len;
-	serial_packet[1] = (GATEWAY_ADDRESS);
-	serial_packet[2] = (DEVICE_ADDRESS);
-	serial_packet[3] = (NET_ID);
+	cc_tx_data[0] = tx_len;
+	cc_tx_data[1] = (GATEWAY_ADDRESS);
+	cc_tx_data[2] = (DEVICE_ADDRESS);
+	cc_tx_data[3] = (NET_ID);
 
 	/* Send */
 	if (cc1101_tx_fifo_state() != 0) {
@@ -324,20 +329,20 @@ void send_on_rf(void)
 	int ret = 0;
 
 	/* Create a local copy */
-	memcpy((char*)&(cc_tx_data[4]), (char*)cc_tx_buff, tx_len);
+	memcpy((char*)&(cc_tx_data[4]), (char*)rlv_buffer, tx_len);
 
 	// RF packet look like this
     //      0       1       2      3     4 ...63
     // [ length | @dest | @src | netID | data ... ]
 
 	/* Prepare buffer for sending */
-	serial_packet[0] = tx_len;
-	serial_packet[1] = (GATEWAY_ADDRESS);
-	serial_packet[2] = (DEVICE_ADDRESS);
-	serial_packet[3] = (NET_ID);
+	cc_tx_data[0] = tx_len;
+	cc_tx_data[1] = (GATEWAY_ADDRESS);
+	cc_tx_data[2] = (DEVICE_ADDRESS);
+	cc_tx_data[3] = (NET_ID);
 
 #if DEBUG
-    uprintf(UART0, "RF: send: packet: %s\n", data);
+    uprintf(UART0, "RF: send: packet: %s\n", cc_tx_data);
 #endif
 
 	/* Send */

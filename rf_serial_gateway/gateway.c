@@ -216,7 +216,7 @@ void send_on_rf(void)
 	if (cc1101_tx_fifo_state() != 0) {
 		cc1101_flush_tx_fifo();
 	}
-	ret = cc1101_send_packet(serial_packet, (tx_len + 4));
+	cc1101_send_packet(serial_packet, (tx_len + 4));
 }
 
 void handle_uart_cmd(uint8_t c)

@@ -285,7 +285,7 @@ void releves(uint32_t gpio){
     // on update pas les relevé si on est en attente d'ACK
     if(waitForACK == 0){
         // Tous les relevés :
-            rlv_buffer+0 = releve_temp();
+            rlv_buffer = releve_temp();
             // rlv_buffer[1] = ...
 
         // send on rf
@@ -325,7 +325,7 @@ void send_ack(){
 void send_on_rf(void)
 {
 	uint8_t cc_tx_data[SIZE_RELEVES_BUFFER];
-	uint8_t tx_len = (SIZE_RELEVES_BUFFER)
+	uint8_t tx_len = (SIZE_RELEVES_BUFFER);
 	int ret = 0;
 
 	/* Create a local copy */

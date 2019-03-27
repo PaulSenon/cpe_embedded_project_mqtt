@@ -161,7 +161,7 @@ void temp_config()
 	/* Temp sensor */
 	ret = tmp101_sensor_config(&tmp101_sensor);
 	if (ret != 0) {
-		uprintf(UART0, "Temp config error: %d\n", ret);
+		uprintf(UART0, "Temp config error: %d\n\r", ret);
 	}
 }
 
@@ -193,7 +193,7 @@ void rf_config(void)
 	set_gpio_callback(rf_rx_calback, &cc1101_gdo0, EDGE_RISING);
 
 #ifdef DEBUG
-	uprintf(UART0, "CC1101 RF link init done.\n");
+	uprintf(UART0, "CC1101 RF link init done.\n\r");
 #endif
 }
 
@@ -238,32 +238,32 @@ void handle_rf_rx_data(void)
     // RF packet look like this
     //      0       1       2      3     4 ...63
     // [ length | @dest | @src | netID | data ... ]
+#ifdef DEBUG
+    uprintf(UART0, "RF: receive packet: %s\n\r", data);
+#endif
 
     if(status != 0 || isValidNetId(data[3]) == 0){
         #ifdef DEBUG
-            uprintf(UART0, "RF: receive: Something invalid received...\n");
+            uprintf(UART0, "RF: receive: Something invalid received...\n\r");
         #endif
         // skip this packet if it does not belong to us (or if invalid)
         return;
     }
 
-#ifdef DEBUG
-    uprintf(UART0, "RF: receive packet: %s\n", data);
-#endif
 
 
     if(isAck(data+4) == 1){
-        uprintf(UART0, "RF: receive: \"ACK\"\n");
+        uprintf(UART0, "RF: receive: \"ACK\"\n\r");
         waitForACK = 0;
     }else{
-        uprintf(UART0, "RF: receive: data: %s\n", data+4);
-        uprintf(UART0, "RF: receive: TODO mqtt stuff...\n");
+        uprintf(UART0, "RF: receive: data: %s\n\r", data+4);
+        uprintf(UART0, "RF: receive: TODO mqtt stuff...\n\r");
         	// TODO Mqtt stuff...
 		send_ack();
     }
 
 #ifdef DEBUG
-	uprintf(UART0, "RF: receive: ret:%d, st: %d.\n", ret, status);
+	uprintf(UART0, "RF: receive: ret:%d, st: %d.\n\r", ret, status);
 #endif
 
 }
@@ -272,10 +272,10 @@ int releve_temp(){
     uint16_t val = 0;
     int deci_degrees;
     if (tmp101_sensor_read(&tmp101_sensor, &val, &deci_degrees) != 0) {
-        uprintf(UART0, "Temp read error\n");
+        uprintf(UART0, "Temp read error\n\r");
 		return 0;
     } else {
-        uprintf(UART0, "Temp read: %d,%d - raw: 0x%04x.\n",
+        uprintf(UART0, "Temp read: %d,%d - raw: 0x%04x.\n\r",
                 (deci_degrees/10), (deci_degrees%10), val);
         return deci_degrees;
     }
@@ -322,7 +322,7 @@ void send_ack(){
 	ret = cc1101_send_packet(cc_tx_data, (tx_len + 4));
 
 #ifdef DEBUG
-	uprintf(UART0, "RF: send: Tx ret: %d\n", ret);
+	uprintf(UART0, "RF: send: Tx ret: %d\n\r", ret);
 #endif
 }
 
@@ -346,7 +346,7 @@ void send_on_rf(void)
 	cc_tx_data[3] = (NET_ID);
 
 #ifdef DEBUG
-    uprintf(UART0, "RF: send: packet: %s\n", cc_tx_data);
+    uprintf(UART0, "RF: send: packet: %s\n\r", cc_tx_data);
 #endif
 
 	/* Send */
@@ -359,7 +359,7 @@ void send_on_rf(void)
     waitForACK = 1;
 
 #ifdef DEBUG
-	uprintf(UART0, "RF: send: Tx ret: %d\n", ret);
+	uprintf(UART0, "RF: send: Tx ret: %d\n\r", ret);
 #endif
 }
 
@@ -378,7 +378,7 @@ int main(void)
 {
 	system_init();
 	uart_on(UART0, 115200, NULL);
-	uprintf(UART0, "Hello\n");
+	uprintf(UART0, "Hello\n\r");
 	ssp_master_on(0, LPC_SSP_FRAME_SPI, 8, 4*1000*1000); /* bus_num, frame_type, data_width, rate */
 	i2c_on(I2C0, I2C_CLK_100KHz, I2C_MASTER);
 	adc_on(NULL);

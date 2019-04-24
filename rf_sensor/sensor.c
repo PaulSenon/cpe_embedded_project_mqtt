@@ -346,7 +346,7 @@ void send_on_rf(void)
 	cc_tx_data[3] = (NET_ID);
 
 #ifdef DEBUG
-    uprintf(UART0, "RF: send: packet: %d|%d|%d|%d|%s\n\r", cc_tx_data[0], cc_tx_data[1], cc_tx_data[2], cc_tx_data[3], cc_tx_data+4);
+    uprintf(UART0, "RF: send: packet: %d|%d|%d|%d|%x\n\r", cc_tx_data[0], cc_tx_data[1], cc_tx_data[2], cc_tx_data[3], cc_tx_data+4);
 #endif
 
 	/* Send */

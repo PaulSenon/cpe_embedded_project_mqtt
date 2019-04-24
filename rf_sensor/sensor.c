@@ -111,8 +111,8 @@ const struct pio button = LPC_GPIO_0_12; /* ISP button */
 
 
 void send_ack();
-static uint8_t rlv_buff_size = 4;
-static volatile uint8_t rlv_buffer[4];
+static uint8_t rlv_buff_size = sizeof(int);
+static volatile uint8_t rlv_buffer[sizeof(int)];
 
 
 /***************************************************************************** */
@@ -269,9 +269,9 @@ void handle_rf_rx_data(void)
 
 }
 
-uint16_t releve_temp(){
+int releve_temp(){
     uint16_t val = 0;
-    uint16_t deci_degrees;
+    int deci_degrees;
     if (tmp101_sensor_read(&tmp101_sensor, &val, &deci_degrees) != 0) {
         uprintf(UART0, "Temp read error\n\r");
 		return 0;

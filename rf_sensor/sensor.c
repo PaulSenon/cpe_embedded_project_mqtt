@@ -286,7 +286,7 @@ void releves(uint32_t gpio){
     // on update pas les relevé si on est en attente d'ACK
     if(waitForACK == 0){
         // Tous les relevés :
-            rlv_buffer = "lo";
+		memcpy((char*)&(rlv_buffer[4]), (char*)("lol"), rlv_buff_size);
 
         // send on rf
         cc_tx = 1;

@@ -349,8 +349,10 @@ void send_on_rf(void)
 	char* cp = (char*)(cc_tx_data+4);
 	char test[rlv_buff_size*2];
 	int i;
-	for(i = 0; i < rlv_buff_size; i++){
-		snprintf (test+(i*2), 2, "%02x", *cp+i);
+	int j = 0;
+	for(i = 0; i < rlv_buff_size*2; i+=2){
+		snprintf (test+i, 2, "%02x", *cp+j);
+		j++;
 	}
     uprintf(UART0, "RF: send: packet: %d|%d|%d|%d|%s\n\r", cc_tx_data[0], cc_tx_data[1], cc_tx_data[2], cc_tx_data[3], test);
 #endif

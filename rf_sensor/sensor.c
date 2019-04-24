@@ -286,7 +286,7 @@ void releves(uint32_t gpio){
     // on update pas les relevé si on est en attente d'ACK
     if(waitForACK == 0){
         // Tous les relevés :
-		int test = 107;
+		int test = releve_temp();
 		memcpy((char*)&(rlv_buffer[0]), (char*)(test), rlv_buff_size);
 
         // send on rf
@@ -346,7 +346,7 @@ void send_on_rf(void)
 	cc_tx_data[3] = (NET_ID);
 
 #ifdef DEBUG
-    uprintf(UART0, "RF: send: packet: %d|%d|%d|%d|%016x\n\r", cc_tx_data[0], cc_tx_data[1], cc_tx_data[2], cc_tx_data[3],  cc_tx_data+4);
+    uprintf(UART0, "RF: send: packet: %d|%d|%d|%d|%s\n\r", cc_tx_data[0], cc_tx_data[1], cc_tx_data[2], cc_tx_data[3],  cc_tx_data+4);
 #endif
 
 	/* Send */

@@ -111,8 +111,8 @@ const struct pio button = LPC_GPIO_0_12; /* ISP button */
 
 
 void send_ack();
-static uint8_t rlv_buff_size = 2;
-static volatile uint8_t rlv_buffer[2];
+static uint8_t rlv_buff_size = 3;
+static volatile uint8_t rlv_buffer[3];
 
 
 /***************************************************************************** */
@@ -282,13 +282,11 @@ int releve_temp(){
     }
 }
 
-char test = 'a';
 void releves(uint32_t gpio){
     // on update pas les relevé si on est en attente d'ACK
     if(waitForACK == 0){
         // Tous les relevés :
-            rlv_buffer[0] = test++;
-            rlv_buffer[1] = test++;
+            rlv_buffer[0] = "lol"
 
         // send on rf
         cc_tx = 1;
@@ -347,7 +345,7 @@ void send_on_rf(void)
 	cc_tx_data[3] = (NET_ID);
 
 #ifdef DEBUG
-    uprintf(UART0, "RF: send: packet: %d|%d|%d|%d|%x\n\r", cc_tx_data[0], cc_tx_data[1], cc_tx_data[2], cc_tx_data[3], cc_tx_data+4);
+    uprintf(UART0, "RF: send: packet: %d|%d|%d|%d|%s\n\r", cc_tx_data[0], cc_tx_data[1], cc_tx_data[2], cc_tx_data[3], cc_tx_data+4);
 #endif
 
 	/* Send */

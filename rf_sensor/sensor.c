@@ -269,9 +269,9 @@ void handle_rf_rx_data(void)
 
 }
 
-int releve_temp(){
+uint16_t releve_temp(){
     uint16_t val = 0;
-    int deci_degrees;
+    uint16_t deci_degrees;
     if (tmp101_sensor_read(&tmp101_sensor, &val, &deci_degrees) != 0) {
         uprintf(UART0, "Temp read error\n\r");
 		return 0;

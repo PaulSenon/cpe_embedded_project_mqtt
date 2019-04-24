@@ -329,7 +329,7 @@ void send_ack(){
 
 void send_on_rf(void)
 {
-	uint8_t cc_tx_data[rlv_buff_size];
+	uint8_t cc_tx_data[rlv_buff_size + 4];
 	uint8_t tx_len = (rlv_buff_size);
 	int ret = 0;
 

@@ -284,17 +284,17 @@ int releve_temp(){
 static uint8_t rlv_buff_size = sizeof(int);
 void releves(uint32_t gpio){
     // on update pas les relevé si on est en attente d'ACK
-    // if(waitForACK == 0){
+    if(waitForACK == 0){
     //     // Tous les relevés :
     //         rlv_buffer[0] = releve_temp();
     //         // rlv_buffer[1] = ...
 
     //     // send on rf
     //     cc_tx = 1;
-    // }
 #ifdef DEBUG
 	uprintf(UART0, "releve\n\r");
 #endif
+    }
 }
 
 void send_ack(){

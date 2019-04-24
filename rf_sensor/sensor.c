@@ -111,8 +111,8 @@ const struct pio button = LPC_GPIO_0_12; /* ISP button */
 
 
 void send_ack();
-static uint8_t rlv_buff_size = 3;
-static volatile uint8_t rlv_buffer[3];
+static uint8_t rlv_buff_size = 4;
+static volatile uint8_t rlv_buffer[4];
 
 
 /***************************************************************************** */

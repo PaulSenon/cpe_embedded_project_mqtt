@@ -272,7 +272,6 @@ void handle_rf_rx_data(void)
 int releve_temp(){
     uint16_t val = 0;
     int deci_degrees;
-	uprintf(UART0, "test\n\r");
     if (tmp101_sensor_read(&tmp101_sensor, &val, &deci_degrees) != 0) {
         uprintf(UART0, "Temp read error\n\r");
 		return 0;
@@ -391,7 +390,7 @@ int main(void)
 	/* Temperature sensor */
 	temp_config();
 
-    add_systick_callback(releves, (TEMP_RLV_MS));
+    // add_systick_callback(releves, (TEMP_RLV_MS));
 
     set_gpio_callback(toggle_wait_for_ack_DEBUG, &button, EDGE_RISING);
 
@@ -404,6 +403,8 @@ int main(void)
 
 		/* Tell we are alive :) */
 		chenillard(250);
+
+		releves(NULL);
 
 		/* RF */
 		if (cc_tx == 1) {

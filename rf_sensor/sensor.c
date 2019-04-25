@@ -215,7 +215,7 @@ uint8_t isAck(uint8_t* message){
         return 0;
     }
     // if not start by "ACK" => false
-	for(i=0; i<sizeof(ack); i++){
+	for(i=sizeof(ack)-1; i>=0; i--){
 		if((char)message[i] != ack[i]){
 			return 0;
 		}

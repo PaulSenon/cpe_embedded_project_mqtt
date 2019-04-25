@@ -392,7 +392,7 @@ int main(void)
 {
 	system_init();
 	uart_on(UART0, 115200, NULL);
-	uprintf(UART0, "Hello\n\r");
+	uprintf(UART0, "Hello, my net address is 0x%02x\n\r", (DEVICE_ADDRESS));
 	ssp_master_on(0, LPC_SSP_FRAME_SPI, 8, 4*1000*1000); /* bus_num, frame_type, data_width, rate */
 	i2c_on(I2C0, I2C_CLK_100KHz, I2C_MASTER);
 	adc_on(NULL);

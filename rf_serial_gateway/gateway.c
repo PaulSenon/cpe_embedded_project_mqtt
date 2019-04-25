@@ -165,7 +165,7 @@ void handle_rf_rx_data(void)
     //      0       1       2      3     4 ...63
     // [ length | @dest | @src | netID | data ... ]
 
-    if(status != 0 || isValidNetId(data[3]) == 0){
+    if(/*status != 0 ||*/ isValidNetId(data[3]) == 0){
         #if DEBUG
             uprintf(UART0, "Something invalid received...%s", (SERIAL_EOL));
             uprintf(UART0, "Status: %d - isValid: %d%s", status, isValidNetId(data[3]), (SERIAL_EOL));

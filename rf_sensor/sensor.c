@@ -276,8 +276,8 @@ int releve_temp(){
         uprintf(UART0, "Temp read error\n\r");
 		return 0;
     } else {
-        uprintf(UART0, "Temp read: %d,%d - raw: 0x%04x - full: %d - chars: %s\n\r",
-                (deci_degrees/10), (deci_degrees%10), val, deci_degrees, deci_degrees);
+        uprintf(UART0, "Temp read: %d,%d - raw: 0x%04x - hex: 0x%08x - full: %d - chars: %s\n\r",
+                (deci_degrees/10), (deci_degrees%10), val, deci_degrees, deci_degrees, deci_degrees);
         return deci_degrees;
     }
 }
@@ -356,7 +356,7 @@ void send_on_rf(void)
 	for(i = 0; i<tx_len; i++){
 		uprintf(UART0, "%02x", cc_tx_data[4+i]);
 	}
-	uprintf(UART0, "\n");
+	uprintf(UART0, "\r\n");
 #endif
 
 	/* Send */

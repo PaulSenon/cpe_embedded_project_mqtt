@@ -215,8 +215,8 @@ uint8_t isAck(uint8_t* message){
         return 0;
     }
     // if not start by "ACK" => false
-	for(i=sizeof(ack)-1; i>=0; i--){
-		if((char)message[i] != ack[i]){
+	for(i = sizeof(ack)-1; i>=0; i--){
+		if((char)message[i] != ack[sizeof(ack)-1-i]){
 			return 0;
 		}
 	}
@@ -247,10 +247,11 @@ void handle_rf_rx_data(void)
 	for(i = length-1; i>=0; i--){
 		uprintf(UART0, "%02x", data[4+i]);
 	}
-	uprintf(UART0, "\r\n ASCII : ");
+	uprintf(UART0, "\r\n\tASCII : ");
 	for(i = length-1; i>=0; i--){
 		uprintf(UART0, "%c", data[4+i]);
 	}
+	uprintf(UART0, "\r\n");
 #endif
 
     if(status != 0 || isValidNetId(data[3]) == 0){

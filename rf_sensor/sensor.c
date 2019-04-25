@@ -354,7 +354,7 @@ void send_on_rf(void)
     uprintf(UART0, "RF: send: packet: %d | Ox%02x | Ox%02x | Ox%02x | Ox", cc_tx_data[0], cc_tx_data[1], cc_tx_data[2], cc_tx_data[3]);
 	int i;
 	for(i = 0; i<tx_len; i++){
-		uprintf(UART0, "%02x", data[4+i]);
+		uprintf(UART0, "%02x", cc_tx_data[4+i]);
 	}
 	uprintf(UART0, "\n");
 #endif

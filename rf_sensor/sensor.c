@@ -211,11 +211,11 @@ uint8_t isAck(uint8_t* message){
 
 	char* ack = (ACK_MSG);
     // if too much data => false
-    if(sizeof(message) > sizeof(ack)){
+    if(sizeof(message) > sizeof(ack)-1){
         return 0;
     }
     // if not start by "ACK" => false
-	for(i=0; i<sizeof(ack); i++){
+	for(i=0; i<sizeof(ack)-1; i++){
 		uprintf(UART0, "%c -vs- %c\r\n", (char)message[i], ack[i]);
 		if((char)message[i] != ack[i]){
 			return 0;

@@ -226,7 +226,7 @@ void send_ack(uint8_t dest){
 	ret = cc1101_send_packet(cc_tx_data, (tx_len + 4));
 
 #ifdef DEBUG
-	uprintf(UART0, "\nRF: send ACK to 0x%02x Tx ret: %d\n\r", dest, ret);
+	uprintf(UART0, "\n\rRF: send ACK to 0x%02x Tx ret: %d\n\r", dest, ret);
 #endif
 }
 

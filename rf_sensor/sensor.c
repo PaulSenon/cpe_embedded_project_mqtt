@@ -192,7 +192,7 @@ void rf_config(void)
 	/* And change application specific settings */
 	cc1101_update_config(rf_specific_settings, sizeof(rf_specific_settings));
 	set_gpio_callback(rf_rx_calback, &cc1101_gdo0, EDGE_RISING);
-
+	cc1101_set_address(DEVICE_ADDRESS);
 #ifdef DEBUG
 	uprintf(UART0, "CC1101 RF link init done.\n\r");
 #endif

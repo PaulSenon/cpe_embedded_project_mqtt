@@ -216,7 +216,7 @@ uint8_t isAck(uint8_t* message){
     }
     // if not start by "ACK" => false
 	for(i=0; i<sizeof(ack); i++){
-		uprintf(UART0, "%c -vs- %c\r\n"(char)message[i], ack[i]);
+		uprintf(UART0, "%c -vs- %c\r\n", (char)message[i], ack[i]);
 		if((char)message[i] != ack[i]){
 			return 0;
 		}

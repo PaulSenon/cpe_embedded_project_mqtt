@@ -295,7 +295,7 @@ void releves(){
     // on update pas les relevé si on est en attente d'ACK
     if(waitForACK == 0){
         // Tous les relevés :
-		int last_temp_value = releve_temp();
+		last_temp_value = releve_temp();
 
         // send on rf
         cc_tx = 1;

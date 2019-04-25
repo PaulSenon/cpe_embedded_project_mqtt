@@ -287,6 +287,7 @@ void releves(){
     if(waitForACK == 0){
         // Tous les relevés :
 		int test = releve_temp();
+		test = ntohl(test);
 		memcpy((char*)&(rlv_buffer[0]), (char*)(&test), rlv_buff_size);
 
         // send on rf

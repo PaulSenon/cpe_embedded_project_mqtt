@@ -241,13 +241,16 @@ void handle_rf_rx_data(void)
     // [ length | @dest | @src | netID | data ... ]
 #ifdef DEBUG
     // uprintf(UART0, "RF: receive packet: %s\n\r", data);
-	uprintf(UART0, "RF: send: packet: %d | Ox%02x | Ox%02x | Ox%02x | Ox", data[0], data[1], data[2], data[3]);
+	uprintf(UART0, "RF: receive: packet: %d | Ox%02x | Ox%02x | Ox%02x | Ox", data[0], data[1], data[2], data[3]);
 	uint8_t length = data[0] - 3;
 	int i;
 	for(i = length-1; i>=0; i--){
 		uprintf(UART0, "%02x", data[4+i]);
 	}
-	uprintf(UART0, "\r\n");
+	uprintf(UART0, "\r\n ASCII : ");
+	for(i = length-1; i>=0; i--){
+		uprintf(UART0, "%c", data[4+i]);
+	}
 #endif
 
     if(status != 0 || isValidNetId(data[3]) == 0){

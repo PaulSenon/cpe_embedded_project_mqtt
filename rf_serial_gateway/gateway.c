@@ -82,7 +82,7 @@ static volatile uint8_t uart_process_payload = 0; // bool for handle_uart_cmd()
 static volatile uint8_t uart_remaining_payload_size = 0; // int for handle_uart_cmd()
 static volatile uint8_t uart_sensor_address = 0x00; // set by handle_uart_cmd(), read by send_on_rf()
 void uart_reset_handle(); // reset these 4 var + cc_ptr ^^^^^^^
-
+void send_ack(uint8_t dest);
 
 /***************************************************************************** */
 void system_init()

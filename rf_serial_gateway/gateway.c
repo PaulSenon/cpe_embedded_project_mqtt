@@ -187,7 +187,7 @@ void handle_rf_rx_data(void)
 	
 	uprintf(UART0, "#%02x%02x%02x", data[0], data[2], checksum, data+4);
 	int i;
-	for(i = 0; i<data[0]; i++){
+	for(i = data[0]-1; i>=0; i--){
 		uprintf(UART0, "%02x", data[4+i]);
 	}
 }

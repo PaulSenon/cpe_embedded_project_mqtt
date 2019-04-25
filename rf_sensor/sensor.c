@@ -282,7 +282,7 @@ int releve_temp(){
     }
 }
 
-void releves(uint32_t gpio){
+void releves(){
     // on update pas les relevé si on est en attente d'ACK
     if(waitForACK == 0){
         // Tous les relevés :
@@ -295,6 +295,11 @@ void releves(uint32_t gpio){
 	uprintf(UART0, "releve\n\r");
 #endif
     }
+}
+
+static volatile uint32_t releves_flag = 0;
+void turn_releves_flag_on(uint32_t gpio){
+	releves_flag = 1;
 }
 
 void send_ack(){
@@ -390,7 +395,7 @@ int main(void)
 	/* Temperature sensor */
 	temp_config();
 
-    // add_systick_callback(releves, (TEMP_RLV_MS));
+    add_systick_callback(turn_releves_flag_on, (TEMP_RLV_MS));
 
     set_gpio_callback(toggle_wait_for_ack_DEBUG, &button, EDGE_RISING);
 
@@ -404,7 +409,11 @@ int main(void)
 		/* Tell we are alive :) */
 		chenillard(250);
 
-		releves(NULL);
+		/* get sensors values */
+		if (releves_flag == 1) {
+			releves();
+			releves_flag = 0;
+		}
 
 		/* RF */
 		if (cc_tx == 1) {

@@ -255,7 +255,7 @@ void handle_rf_rx_data(void)
 	uprintf(UART0, "\r\n");
 #endif
 
-    if(status != 0 || isValidNetId(data[3]) == 0){
+    if(/*status != 0 ||*/ isValidNetId(data[3]) == 0){
         #ifdef DEBUG
             uprintf(UART0, "RF: receive: Something invalid received...\n\r");
         #endif

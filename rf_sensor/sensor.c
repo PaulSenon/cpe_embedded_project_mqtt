@@ -211,7 +211,7 @@ uint8_t isAck(uint8_t* message){
 
 	char* ack = (ACK_MSG);
     // if too much data => false
-    if(sizeof(message) > sizeof(ack)-1){
+    if(sizeof(message) > sizeof(ack)){
         return 0;
     }
     // if not start by "ACK" => false

@@ -216,7 +216,7 @@ uint8_t isAck(uint8_t* message){
     }
     // if not start by "ACK" => false
 	for(i=0; i<sizeof(ack)-1; i++){
-		uprintf(UART0, "%c -vs- %c\r\n", (char)message[i], ack[i]);
+		// uprintf(UART0, "%c -vs- %c\r\n", (char)message[i], ack[i]);
 		if((char)message[i] != ack[i]){
 			return 0;
 		}
@@ -247,10 +247,6 @@ void handle_rf_rx_data(void)
 	int i;
 	for(i = length-1; i>=0; i--){
 		uprintf(UART0, "%02x", data[4+i]);
-	}
-	uprintf(UART0, "\r\n\tASCII : ");
-	for(i = length-1; i>=0; i--){
-		uprintf(UART0, "%c", data[4+i]);
 	}
 	uprintf(UART0, "\r\n");
 #endif
@@ -294,19 +290,22 @@ int releve_temp(){
     }
 }
 
+int last_temp_value = 0;
 void releves(){
     // on update pas les relevé si on est en attente d'ACK
     if(waitForACK == 0){
         // Tous les relevés :
-		int test = releve_temp();
-		memcpy((char*)&(rlv_buffer[0]), (char*)(&test), rlv_buff_size);
+		int last_temp_value = releve_temp();
 
         // send on rf
         cc_tx = 1;
 #ifdef DEBUG
 	uprintf(UART0, "releve\n\r");
+    }else {
+	uprintf(UART0, "no ACK received to we send again the last value\n\r");
 #endif
-    }
+	}
+	memcpy((char*)&(rlv_buffer[0]), (char*)(&last_temp_value), rlv_buff_size);
 }
 
 static volatile uint32_t releves_flag = 0;

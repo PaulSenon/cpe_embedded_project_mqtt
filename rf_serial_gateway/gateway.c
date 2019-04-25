@@ -183,11 +183,12 @@ void handle_rf_rx_data(void)
 	//     0      1       2        3      4 ... 63
 	// [ "#" | length | @src | checksum | data ... ]
 	// send on UART
-	uint8_t checksum = data[0] + data[2];
+	uint8_t length = data[0] - 3;
+	uint8_t checksum = length + data[2];
 	
-	uprintf(UART0, "#%02x%02x%02x", data[0], data[2], checksum);
+	uprintf(UART0, "#%02x%02x%02x", length, data[2], checksum);
 	int i;
-	for(i = data[0]-1; i>=0; i--){
+	for(i = length-1; i>=0; i--){
 		uprintf(UART0, "%02x", data[4+i]);
 	}
 }

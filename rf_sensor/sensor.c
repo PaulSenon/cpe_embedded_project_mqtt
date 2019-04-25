@@ -368,7 +368,11 @@ void send_on_rf(void)
 #endif
 }
 
-void toggle_wait_for_ack_DEBUG(uint32_t gpio){
+static volatile uint32_t wait_for_ack_flag_gpio = 0;
+void toggle_toggle_wait_for_ack_flag(uint32_t gpio){
+	wait_for_ack_flag_gpio = 1;
+}
+void toggle_wait_for_ack_DEBUG(){
     if(waitForACK == 1){
         waitForACK = 0;
     }else{
@@ -397,7 +401,7 @@ int main(void)
 
     add_systick_callback(turn_releves_flag_on, (TEMP_RLV_MS));
 
-    set_gpio_callback(toggle_wait_for_ack_DEBUG, &button, EDGE_RISING);
+    set_gpio_callback(toggle_toggle_wait_for_ack_flag, &button, EDGE_RISING);
 
 	while (1) {
 		uint8_t status = 0;
@@ -408,6 +412,12 @@ int main(void)
 
 		/* Tell we are alive :) */
 		chenillard(250);
+
+		/* DEBUG */
+		if (wait_for_ack_flag_gpio == 1) {
+			toggle_wait_for_ack_DEBUG();
+			wait_for_ack_flag_gpio = 0;
+		}
 
 		/* get sensors values */
 		if (releves_flag == 1) {

@@ -287,7 +287,6 @@ void releves(){
     if(waitForACK == 0){
         // Tous les relevés :
 		int test = releve_temp();
-		test = htonl(test);
 		memcpy((char*)&(rlv_buffer[0]), (char*)(&test), rlv_buff_size);
 
         // send on rf
@@ -354,7 +353,7 @@ void send_on_rf(void)
 #ifdef DEBUG
     uprintf(UART0, "RF: send: packet: %d | Ox%02x | Ox%02x | Ox%02x | Ox", cc_tx_data[0], cc_tx_data[1], cc_tx_data[2], cc_tx_data[3]);
 	int i;
-	for(i = 0; i<tx_len; i++){
+	for(i = tx_len-1; i>=0; i++){
 		uprintf(UART0, "%02x", cc_tx_data[4+i]);
 	}
 	uprintf(UART0, "\r\n");

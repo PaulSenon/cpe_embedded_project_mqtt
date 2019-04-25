@@ -168,7 +168,8 @@ void handle_rf_rx_data(void)
     if(status != 0 || isValidNetId(data[3]) == 0){
         #if DEBUG
             uprintf(UART0, "Something invalid received...%s", (SERIAL_EOL));
-    		uprintf(UART0, "RF: send: packet: %d|Ox%02x|Ox%02x|Ox%02x|%s%s\n\r", data[0], data[1], data[2], data[3],  data+4, (SERIAL_EOL));
+            uprintf(UART0, "Status: %d - isValid: %d%s", status, isValidNetId(data[3]), (SERIAL_EOL));
+    		uprintf(UART0, "RF: receive: packet: %d|Ox%02x|Ox%02x|Ox%02x|%s%s\n\r", data[0], data[1], data[2], data[3],  data+4, (SERIAL_EOL));
         #endif
         // skip this packet if it does not belong to us (or if invalid)
         return;

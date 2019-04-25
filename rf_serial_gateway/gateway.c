@@ -191,12 +191,44 @@ void handle_rf_rx_data(void)
 	for(i = length-1; i>=0; i--){
 		uprintf(UART0, "%02x", data[4+i]);
 	}
+
+	// ACK to sender
+	send_ack(data[2]);
 }
 
 static volatile uint32_t cc_tx = 0;
 static volatile uint32_t update_display = 0;
 static volatile uint8_t cc_tx_buff[RF_BUFF_LEN];
 static volatile uint8_t cc_ptr = 0;
+
+void send_ack(uint8_t dest){
+	uint8_t cc_tx_data[(3+4)];
+	uint8_t tx_len = 3;
+	int ret = 0;
+
+	/* Create a local copy */
+	memcpy((char*)&(cc_tx_data[4]), (char*)("ACK"), tx_len);
+
+	// RF packet look like this
+    //      0       1       2      3     4 ...63
+    // [ length | @dest | @src | netID | data ... ]
+
+	/* Prepare buffer for sending */
+	cc_tx_data[0] = tx_len + 3;
+	cc_tx_data[1] = dest;
+	cc_tx_data[2] = (DEVICE_ADDRESS);
+	cc_tx_data[3] = (NET_ID);
+
+	/* Send */
+	if (cc1101_tx_fifo_state() != 0) {
+		cc1101_flush_tx_fifo();
+	}
+	ret = cc1101_send_packet(cc_tx_data, (tx_len + 4));
+
+#ifdef DEBUG
+	uprintf(UART0, "RF: send: Tx ret: %d\n\r", ret);
+#endif
+}
 
 void send_on_rf(void)
 {

@@ -315,7 +315,7 @@ void send_ack(){
     // [ length | @dest | @src | netID | data ... ]
 
 	/* Prepare buffer for sending */
-	cc_tx_data[0] = tx_len;
+	cc_tx_data[0] = tx_len + 3;
 	cc_tx_data[1] = (GATEWAY_ADDRESS);
 	cc_tx_data[2] = (DEVICE_ADDRESS);
 	cc_tx_data[3] = (NET_ID);

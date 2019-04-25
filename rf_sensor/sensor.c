@@ -276,8 +276,8 @@ int releve_temp(){
         uprintf(UART0, "Temp read error\n\r");
 		return 0;
     } else {
-        uprintf(UART0, "Temp read: %d,%d - raw: 0x%04x.\n\r",
-                (deci_degrees/10), (deci_degrees%10), val);
+        uprintf(UART0, "Temp read: %d,%d - raw: 0x%04x - full: %d - chars: %s\n\r",
+                (deci_degrees/10), (deci_degrees%10), val, deci_degrees, deci_degrees);
         return deci_degrees;
     }
 }

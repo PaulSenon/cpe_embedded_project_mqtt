@@ -176,7 +176,7 @@ void handle_rf_rx_data(void)
     }
 
 	#if DEBUG
-		uprintf(UART0, "DATA received %s", (SERIAL_EOL));
+		uprintf(UART0, "%sDATA received %s", (SERIAL_EOL), (SERIAL_EOL));
 	#endif
 
 	// Serial packet look like this

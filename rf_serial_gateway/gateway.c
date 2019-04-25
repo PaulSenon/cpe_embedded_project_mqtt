@@ -184,7 +184,7 @@ void handle_rf_rx_data(void)
 	// [ "#" | length | @src | checksum | data ... ]
 	// send on UART
 	uint8_t checksum = data[0] + data[2];
-	uprintf(UART0, "#%d%d%d%s", data[0], data[2], checksum, data+4);
+	uprintf(UART0, "#%02x%02x%02x%s", data[0], data[2], checksum, data+4);
 }
 
 static volatile uint32_t cc_tx = 0;

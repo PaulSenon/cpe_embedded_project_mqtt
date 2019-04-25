@@ -297,8 +297,7 @@ void releves(){
         // Tous les relevés :
 		last_temp_value = releve_temp();
 
-        // send on rf
-        cc_tx = 1;
+        
 #ifdef DEBUG
 	uprintf(UART0, "releve\n\r");
     }else {
@@ -306,6 +305,8 @@ void releves(){
 #endif
 	}
 	memcpy((char*)&(rlv_buffer[0]), (char*)(&last_temp_value), rlv_buff_size);
+	// send on rf
+	cc_tx = 1;
 }
 
 static volatile uint32_t releves_flag = 0;
